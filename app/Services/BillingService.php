@@ -173,4 +173,15 @@ class BillingService
             ];
         });
     }
+
+    public function removeItemFromCart(User $user, int $productId): array
+    {
+        $cart = $this->cartRepository->getActiveCartForUser($user->id);
+
+        if ($cart) {
+            $this->cartRepository->removeCartItem($cart->id, $productId);
+        }
+
+        return $this->getCartSummary($user);
+    }
 }

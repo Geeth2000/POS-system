@@ -80,4 +80,12 @@ class CartRepository
     {
         CartItem::query()->where('cart_id', $cartId)->delete();
     }
+
+    public function removeCartItem(int $cartId, int $productId): void
+    {
+        CartItem::query()
+            ->where('cart_id', $cartId)
+            ->where('product_id', $productId)
+            ->delete();
+    }
 }

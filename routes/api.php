@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(RoleMiddleware::class . ':admin,cashier')->group(function () {
         Route::post('/sales', [SaleController::class, 'store']);
         Route::post('/billing/cart/items', [BillingController::class, 'addItem']);
+        Route::delete('/billing/cart/items/{product_id}', [BillingController::class, 'removeItem']);
         Route::get('/billing/cart/summary', [BillingController::class, 'cartSummary']);
         Route::post('/billing/checkout', [BillingController::class, 'checkout']);
     });

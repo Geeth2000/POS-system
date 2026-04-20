@@ -44,4 +44,15 @@ class BillingController
             'data' => $billSummary,
         ], 201);
     }
+
+    public function removeItem(Request $request, int $productId)
+    {
+        $summary = $this->billingService->removeItemFromCart($request->user(), $productId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item removed from cart',
+            'data' => $summary,
+        ]);
+    }
 }
