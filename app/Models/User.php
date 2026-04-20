@@ -69,4 +69,36 @@ class User extends Authenticatable
     {
         return $this->hasMany(Cart::class, 'user_id');
     }
+
+    // ─── Role Helper Methods ──────────────────────────────────────────────────
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
+    public function isCashier(): bool
+    {
+        return $this->role === 'cashier';
+    }
+
+    public function canManageUsers(): bool
+    {
+        return in_array($this->role, ['admin', 'manager'], true);
+    }
+
+    public function canManageInventory(): bool
+    {
+        return in_array($this->role, ['admin', 'manager'], true);
+    }
+
+    public function canViewReports(): bool
+    {
+        return in_array($this->role, ['admin', 'manager'], true);
+    }
 }

@@ -121,16 +121,18 @@
         <!-- Navigation -->
         <nav class="flex-1 flex flex-col items-center py-4 gap-1">
 
-            <a href="#" id="navDashboard" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Dashboard">
+            <a href="{{ route('dashboard') }}" id="navDashboard" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Dashboard">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">Dashboard</span>
             </a>
 
-            <a href="#" id="navSale" class="nav-item active w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-white cursor-pointer" title="New Sale">
+            <a href="{{ route('pos') }}" id="navSale" class="nav-item active w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-white cursor-pointer" title="New Sale">
                 <i data-lucide="scan-line" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">New Sale</span>
             </a>
 
+            {{-- Admin/Manager Only Links --}}
+            @if(Auth::user()->canManageInventory())
             <a href="#" id="navInventory" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Inventory">
                 <i data-lucide="package" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">Inventory</span>
@@ -145,6 +147,7 @@
                 <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">Reports</span>
             </a>
+            @endif
         </nav>
 
         <!-- Settings at bottom -->

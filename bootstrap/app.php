@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\WebRoleMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,8 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/health',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->statefulApi();
         $middleware->alias([
-            'role' => RoleMiddleware::class,
+            'role'     => RoleMiddleware::class,
+            'web.role' => WebRoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
