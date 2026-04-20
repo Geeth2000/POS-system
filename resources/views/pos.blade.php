@@ -87,15 +87,7 @@
         #checkoutBtn:hover::after { left: 140%; }
         #checkoutBtn { overflow: hidden; position: relative; }
 
-        /* Fade-in for results */
-        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .fade-in { animation: fadeIn 0.2s ease forwards; }
-
-        /* Modal backdrop */
-        #settingsModal { backdrop-filter: blur(4px); }
-
-        /* Toast notification */
-        #toast { transition: all 0.3s ease; }
+        /* Checkout button shine */
     </style>
 </head>
 
@@ -150,13 +142,7 @@
             @endif
         </nav>
 
-        <!-- Settings at bottom -->
-        <div class="flex flex-col items-center pb-4 gap-1">
-            <button onclick="openSettings()" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Settings">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">Settings</span>
-            </button>
-        </div>
+        <!-- Navigation Items -->
     </aside>
 
     <!-- ===================== MAIN CONTENT ==================== -->
@@ -171,11 +157,6 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <!-- Auth status badge -->
-                <div id="authBadge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>
-                    <span id="authBadgeText">Token not set</span>
-                </div>
                 <!-- Date / Time -->
                 <div class="text-xs text-gray-400 tabular-nums" id="clockDisplay"></div>
                 <!-- Cashier Avatar -->
@@ -400,49 +381,7 @@
     </div>
 </div>
 
-<!-- ===================== SETTINGS MODAL ==================== -->
-<div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 fade-in">
-        <div class="flex items-center justify-between mb-5">
-            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                <i data-lucide="settings-2" class="w-4 h-4 text-indigo-500"></i>
-                POS Settings
-            </h2>
-            <button onclick="closeSettings()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-        </div>
 
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">API Bearer Token</label>
-                <div class="flex gap-2">
-                    <input id="tokenInput" type="password" placeholder="Paste your Bearer token here" class="flex-1 px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-400 text-gray-700">
-                    <button onclick="toggleTokenVisibility()" class="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center text-gray-400 hover:text-indigo-600 hover:border-indigo-300 transition-colors">
-                        <i data-lucide="eye" class="w-4 h-4" id="eyeIcon"></i>
-                    </button>
-                </div>
-                <p class="text-xs text-gray-400 mt-1.5">Required to authenticate API requests. Stored locally in your browser.</p>
-            </div>
-
-            <div class="flex gap-2 pt-1">
-                <button onclick="saveToken()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
-                    <i data-lucide="save" class="w-4 h-4"></i>
-                    Save Token
-                </button>
-                <button onclick="clearToken()" class="px-4 py-2.5 border border-red-200 text-red-500 hover:bg-red-50 font-semibold rounded-xl text-sm transition-colors">
-                    Clear
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ===================== TOAST NOTIFICATION ================ -->
-<div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium max-w-sm">
-    <i id="toastIcon" class="w-4 h-4 flex-shrink-0"></i>
-    <span id="toastText"></span>
-</div>
 
 
 <!-- ===================== JAVASCRIPT ======================== -->
@@ -469,7 +408,7 @@
     const changeAmt     = $('changeAmt');
     const discountInput = $('discountInput');
     const cashInput     = $('cashInput');
-    const tokenInput    = $('tokenInput');
+
 
     let searchTimer = null;
     let currentPayment = 'cash';
@@ -484,49 +423,13 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // ── TOKEN MANAGEMENT ─────────────────────────────────────
-    function getToken()      { return localStorage.getItem('pos_token') || ''; }
-    function saveToken()     { setToken(tokenInput.value); showToast('Token saved successfully.', 'success'); closeSettings(); }
-    function clearToken()    { localStorage.removeItem('pos_token'); tokenInput.value = ''; updateAuthBadge(); showToast('Token cleared.', 'info'); }
-    function setToken(t)     { localStorage.setItem('pos_token', t.trim()); tokenInput.value = t.trim(); updateAuthBadge(); }
-
-    function updateAuthBadge() {
-        const hasToken = !!getToken();
-        const badge = $('authBadge');
-        const dot   = badge.querySelector('span');
-        if (hasToken) {
-            badge.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200';
-            dot.className   = 'w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block';
-            $('authBadgeText').textContent = 'Token active';
-        } else {
-            badge.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200';
-            dot.className   = 'w-1.5 h-1.5 rounded-full bg-amber-400 inline-block';
-            $('authBadgeText').textContent = 'Token not set';
-        }
-    }
-
-    function toggleTokenVisibility() {
-        const inp = tokenInput;
-        const icon = $('eyeIcon');
-        if (inp.type === 'password') { inp.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); }
-        else                         { inp.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
-        lucide.createIcons();
-    }
-
-    function openSettings()  { $('settingsModal').classList.remove('hidden'); tokenInput.value = getToken(); }
-    function closeSettings() { $('settingsModal').classList.add('hidden'); }
-
-    // Close modal on backdrop click
-    $('settingsModal').addEventListener('click', e => { if (e.target === $('settingsModal')) closeSettings(); });
-
     // ── API HELPER ───────────────────────────────────────────
     function apiHeaders() {
-        const t = getToken();
         return {
             'Content-Type': 'application/json',
-            'Authorization': t ? `Bearer ${t}` : '',
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         };
     }
 
@@ -650,10 +553,8 @@
             });
             renderCart(result.data);
             updateCartStatus('Item added to cart.', false);
-            showToast('Item added to cart.', 'success');
         } catch (err) {
             updateCartStatus(err.message, true);
-            showToast(err.message, 'error');
         }
     }
 
@@ -748,7 +649,7 @@
 
     // ── CHECKOUT ─────────────────────────────────────────────
     async function checkout() {
-        if (!currentCartItems.length) { showToast('Cart is empty.', 'error'); return; }
+        
         const btn = $('checkoutBtn');
         btn.disabled = true;
         btn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Processing...`;
@@ -759,14 +660,12 @@
             });
             const saleId = result.data?.sale_id;
             const total  = result.data?.total_amount;
-            showToast(`✓ Sale #${saleId} completed — ${money(total)}`, 'success');
-            updateCartStatus(`Checkout complete. Sale #${saleId} total ${money(total)}.`, false);
+            updateCartStatus(`✓ Sale #${saleId} completed — ${money(total)}`, false);
             searchResults.innerHTML = '';
             statItems.textContent   = 0;
             await refreshCart();
         } catch (err) {
             updateCartStatus(err.message, true);
-            showToast(err.message, 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> Checkout`;
@@ -806,35 +705,7 @@
         searchTimer = setTimeout(searchProducts, 280);
     });
 
-    // ── TOAST ────────────────────────────────────────────────
-    let toastTimer = null;
-    function showToast(msg, type = 'info') {
-        const toast = $('toast');
-        const icon  = $('toastIcon');
-        const text  = $('toastText');
-
-        const styles = {
-            success: { bg: 'bg-emerald-600', icon: 'check-circle' },
-            error:   { bg: 'bg-red-500',     icon: 'alert-circle'  },
-            info:    { bg: 'bg-indigo-600',   icon: 'info'          },
-        };
-        const s = styles[type] || styles.info;
-        toast.className = `fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium text-white max-w-sm ${s.bg}`;
-        icon.setAttribute('data-lucide', s.icon);
-        text.textContent = msg;
-        toast.classList.remove('hidden');
-        lucide.createIcons();
-
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
-    }
-
-    // ── ESCAPE KEY closes modal ───────────────────────────────
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
-
     // ── INIT ─────────────────────────────────────────────────
-    tokenInput.value = getToken();
-    updateAuthBadge();
     selectPayment('cash');
     refreshCart();
     searchInput.focus();

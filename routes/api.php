@@ -69,8 +69,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/low-stock-items', [ReportController::class, 'lowStockItems']);
     });
 
-    // Cashier can only create sales (admin also allowed)
-    Route::middleware(RoleMiddleware::class . ':admin,cashier')->group(function () {
+    // Cashier and Manager can create sales (admin also allowed)
+    Route::middleware(RoleMiddleware::class . ':admin,manager,cashier')->group(function () {
         Route::post('/sales', [SaleController::class, 'store']);
         Route::post('/billing/cart/items', [BillingController::class, 'addItem']);
         Route::delete('/billing/cart/items/{product_id}', [BillingController::class, 'removeItem']);
