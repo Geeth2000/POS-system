@@ -568,21 +568,17 @@
         const term = searchInput.value.trim();
         if (!term) { searchResults.innerHTML = ''; setSearchStatus('Scan a barcode for instant match, or type a product name.', false); return; }
 
-        const query = /^\d+$/.test(term)
-            ? `?barcode=${encodeURIComponent(term)}`
-            : `?name=${encodeURIComponent(term)}`;
-
         setSearchStatus('Searching...', false);
         searchSpinner.classList.remove('hidden');
 
         try {
-            const result = await api(`/products/search${query}`);
+            const result = await api(`/products/search?query=${encodeURIComponent(term)}`);
             const items  = result.data || [];
             renderSearchResults(items);
             setSearchStatus(`${items.length} product(s) found.`, false);
         } catch (err) {
             searchResults.innerHTML = '';
-            setSearchStatus(err.message, true);
+            setSearchStatus(err.message === 'Product not found' ? 'Product not found' : 'Search failed. Please try again.', true);
         } finally {
             searchSpinner.classList.add('hidden');
         }

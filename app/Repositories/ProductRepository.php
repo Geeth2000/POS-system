@@ -91,7 +91,15 @@ class ProductRepository
             ->where('is_active', true)
             ->limit($limit);
 
-        if (!empty($filters['barcode'])) {
+        if (!empty($filters['query'])) {
+            $term = $filters['query'];
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', '%' . $term . '%')
+                  ->orWhere('sku', 'like', '%' . $term . '%')
+                  ->orWhere('barcode', 'like', '%' . $term . '%')
+                  ->orWhere('item_code', 'like', '%' . $term . '%');
+            });
+        } elseif (!empty($filters['barcode'])) {
             $query->where('barcode', $filters['barcode']);
         } elseif (!empty($filters['item_code'])) {
             $query->where('item_code', $filters['item_code']);

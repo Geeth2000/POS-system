@@ -45,23 +45,31 @@ class ProductController
     public function search(Request $request)
     {
         $request->validate([
+            'query' => 'nullable|string|max:255',
             'barcode' => 'nullable|string|max:100',
             'item_code' => 'nullable|string|max:100',
             'name' => 'nullable|string|max:255',
             'limit' => 'nullable|integer|min:1|max:100',
         ]);
 
-        if (!$request->filled('barcode') && !$request->filled('item_code') && !$request->filled('name')) {
+        if (!$request->filled('barcode') && !$request->filled('item_code') && !$request->filled('name') && !$request->filled('query')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Provide at least one search parameter: barcode, item_code, or name.',
+                'message' => 'Provide a search query.',
             ], 422);
         }
 
         $data = $this->productService->searchForPos(
-            $request->only(['barcode', 'item_code', 'name']),
+            $request->only(['barcode', 'item_code', 'name', 'query']),
             (int) $request->input('limit', 20)
         );
+
+        if ($data->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found',
+            ], 404);
+        }
 
         return response()->json([
             'success' => true,

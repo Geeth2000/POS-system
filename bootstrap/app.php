@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role'     => RoleMiddleware::class,
             'web.role' => WebRoleMiddleware::class,
+            // Map legacy class names to framework versions to fix 500 errors
+            'App\Http\Middleware\EncryptCookies' => \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            'App\Http\Middleware\VerifyCsrfToken' => \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
