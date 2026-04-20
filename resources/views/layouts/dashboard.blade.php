@@ -136,18 +136,15 @@
                 </a>
             @endif
 
-            {{-- ── Admin Only ── --}}
-            @if(Auth::user()->isAdmin())
-                <a href="/api/products" target="_blank"
-                   class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600">
+            {{-- Admin + Manager: Inventory Management --}}
+            @if(Auth::user()->isManager() || Auth::user()->isAdmin())
+                <a href="{{ route('products.index') }}"
+                   class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 {{ request()->routeIs('products.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>
-                    Inventory (API)
-                    <svg class="w-3 h-3 ml-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                    </svg>
+                    Inventory
                 </a>
             @endif
         </nav>

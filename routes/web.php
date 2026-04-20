@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\ProductController;
 
 // ─── Guest Routes ─────────────────────────────────────────────────────────────
 Auth::routes(['register' => false]); // Registration only via admin panel
@@ -41,4 +42,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{user}', [UserManagementController::class, 'destroy'])->name('destroy');
         Route::patch('/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('toggle-status');
     });
+
+    // Product Management (Admin + Manager only)
+    Route::resource('products', ProductController::class)->middleware('web.role:admin,manager');
 });
