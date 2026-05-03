@@ -45,4 +45,9 @@ Route::middleware('auth')->group(function () {
 
     // Product Management (Admin + Manager only)
     Route::resource('products', ProductController::class)->middleware('web.role:admin,manager');
+
+    // Reports & Analytics (Admin + Manager only)
+    Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])
+        ->name('reports.index')
+        ->middleware('web.role:admin,manager');
 });
