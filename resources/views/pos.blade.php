@@ -111,7 +111,7 @@
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 flex flex-col items-center py-4 gap-1">
+        <nav class="flex-1 flex flex-col items-center py-4 gap-2">
 
             <a href="{{ route('dashboard') }}" id="navDashboard" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Dashboard">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
@@ -124,25 +124,35 @@
             </a>
 
             {{-- Admin/Manager Only Links --}}
-            @if(Auth::user()->canManageInventory())
-            <a href="#" id="navInventory" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Inventory">
-                <i data-lucide="package" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">Inventory</span>
-            </a>
+            @if(Auth::user()->canViewReports())
+                <a href="{{ route('products.index') }}" id="navInventory" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Inventory">
+                    <i data-lucide="package" class="w-5 h-5"></i>
+                    <span class="text-[9px] font-medium">Inventory</span>
+                </a>
 
-            <a href="#" id="navCustomers" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Customers">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">Customers</span>
-            </a>
+                <a href="#" id="navCustomers" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Customers">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span class="text-[9px] font-medium">Customers</span>
+                </a>
 
-            <a href="#" id="navReports" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Reports">
-                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">Reports</span>
-            </a>
+                <a href="{{ route('reports.index') }}" id="navReports" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Reports">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span class="text-[9px] font-medium">Reports</span>
+                </a>
             @endif
         </nav>
 
-        <!-- Navigation Items -->
+        <!-- Logout -->
+        <div class="py-6 flex flex-col items-center border-t border-indigo-500/30">
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                @csrf
+            </form>
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" 
+               class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-red-300 transition-colors" title="Logout">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span class="text-[9px] font-medium">Logout</span>
+            </a>
+        </div>
     </aside>
 
     <!-- ===================== MAIN CONTENT ==================== -->
