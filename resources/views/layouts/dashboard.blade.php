@@ -146,7 +146,10 @@
                     </svg>
                     Inventory
                 </a>
+            @endif
 
+            {{-- Admin, Manager, Cashier: Customer Management --}}
+            @if(Auth::user()->canManageCustomers())
                 <a href="{{ route('customers.index') }}"
                    class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 {{ request()->routeIs('customers.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +158,10 @@
                     </svg>
                     Customers
                 </a>
+            @endif
 
+            {{-- Admin + Manager: Reports --}}
+            @if(Auth::user()->isManager() || Auth::user()->isAdmin())
                 <a href="{{ route('reports.index') }}"
                    class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

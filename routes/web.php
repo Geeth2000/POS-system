@@ -51,6 +51,6 @@ Route::middleware('auth')->group(function () {
         ->name('reports.index')
         ->middleware('web.role:admin,manager');
 
-    // Customer Management (Admin + Manager only)
-    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->only(['index', 'store'])->middleware('web.role:admin,manager');
+    // Customer Management (Admin, Manager, Cashier)
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->only(['index', 'store'])->middleware('web.role:admin,manager,cashier');
 });

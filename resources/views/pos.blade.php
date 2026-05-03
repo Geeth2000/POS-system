@@ -124,17 +124,23 @@
             </a>
 
             {{-- Admin/Manager Only Links --}}
-            @if(Auth::user()->canViewReports())
+            @if(Auth::user()->canManageInventory())
                 <a href="{{ route('products.index') }}" id="navInventory" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Inventory">
                     <i data-lucide="package" class="w-5 h-5"></i>
                     <span class="text-[9px] font-medium">Inventory</span>
                 </a>
+            @endif
 
+            {{-- All Roles with Customer Management Perms --}}
+            @if(Auth::user()->canManageCustomers())
                 <a href="{{ route('customers.index') }}" id="navCustomers" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Customers">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span class="text-[9px] font-medium">Customers</span>
                 </a>
+            @endif
 
+            {{-- Admin/Manager Only Links --}}
+            @if(Auth::user()->canViewReports())
                 <a href="{{ route('reports.index') }}" id="navReports" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Reports">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span class="text-[9px] font-medium">Reports</span>

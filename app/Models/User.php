@@ -101,4 +101,9 @@ class User extends Authenticatable
     {
         return in_array($this->role, ['admin', 'manager'], true);
     }
+
+    public function canManageCustomers(): bool
+    {
+        return in_array($this->role, ['admin', 'manager', 'cashier'], true);
+    }
 }

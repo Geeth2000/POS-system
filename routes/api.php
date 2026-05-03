@@ -31,13 +31,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
         Route::post('/auth/register', [AuthController::class, 'register']);
 
-        // Admin full-access modules
+        // Admin modules
         Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('customers', CustomerController::class);
-        Route::post('/customers/{customer}/loyalty-points', [CustomerController::class, 'addLoyaltyPoints']);
         Route::apiResource('transactions', TransactionController::class, ['only' => ['index', 'store', 'show']]);
         Route::get('/transactions/reports/daily', [TransactionController::class, 'dailyReport']);
         Route::get('/transactions/reports/period', [TransactionController::class, 'periodReport']);
+    });
+
+    // Customer modules (Admin, Manager, Cashier)
+    Route::middleware(RoleMiddleware::class . ':admin,manager,cashier')->group(function () {
+        Route::apiResource('customers', CustomerController::class);
+        Route::post('/customers/{customer}/loyalty-points', [CustomerController::class, 'addLoyaltyPoints']);
     });
 
     // Auth routes
