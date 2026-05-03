@@ -15,6 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -40,6 +41,11 @@
                     }
                 }
             }
+        }
+    </script>
+    <script>
+        if (localStorage.getItem('dark-mode') === 'true') {
+            document.documentElement.classList.add('dark');
         }
     </script>
 
@@ -91,7 +97,7 @@
     </style>
 </head>
 
-<body class="bg-[#F9FAFB] text-gray-800 antialiased">
+<body class="bg-[#F9FAFB] dark:bg-slate-900 text-gray-800 dark:text-gray-200 antialiased transition-colors duration-300">
 
 <!-- ============================================================
      APP SHELL: Sidebar + Main Content
@@ -99,7 +105,7 @@
 <div class="flex h-screen overflow-hidden">
 
     <!-- ===================== SIDEBAR ========================= -->
-    <aside class="flex flex-col w-20 bg-indigo-600 shadow-xl flex-shrink-0">
+    <aside class="flex flex-col w-20 bg-indigo-600 dark:bg-slate-800 shadow-xl flex-shrink-0 transition-colors">
 
         <!-- Logo -->
         <div class="flex items-center justify-center h-16 border-b border-indigo-500">
@@ -165,19 +171,31 @@
     <div class="flex-1 flex flex-col overflow-hidden">
 
         <!-- Top Bar -->
-        <header class="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 flex-shrink-0 shadow-sm">
+        <header class="h-14 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between px-6 flex-shrink-0 shadow-sm transition-colors">
             <div class="flex items-center gap-3">
                 <div class="flex flex-col">
-                    <h1 class="text-sm font-semibold text-gray-800 leading-none">New Sale</h1>
+                    <h1 class="text-sm font-semibold text-gray-800 dark:text-white leading-none">New Sale</h1>
                     <p class="text-xs text-gray-400 mt-0.5">Scan or search products to begin</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
+                {{-- Theme & Fullscreen Toggles --}}
+                <div class="flex items-center bg-gray-100 dark:bg-slate-700 p-1 rounded-xl gap-1">
+                    <button onclick="toggleDarkMode()" class="p-1.5 rounded-lg text-gray-500 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm" title="Toggle Dark Mode">
+                        <svg id="sun-icon" class="w-3.5 h-3.5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+                        <svg id="moon-icon" class="w-3.5 h-3.5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    </button>
+                    <button onclick="toggleFullScreen()" class="p-1.5 rounded-lg text-gray-500 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm" title="Full Screen">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    </button>
+                </div>
+
                 <!-- Date / Time -->
-                <div class="text-xs text-gray-400 tabular-nums" id="clockDisplay"></div>
+                <div class="text-xs text-gray-400 tabular-nums hidden sm:block" id="clockDisplay"></div>
+
                 <!-- Cashier Avatar -->
                 <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow">
-                    CS
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
             </div>
         </header>
@@ -189,7 +207,7 @@
             <section class="flex flex-col w-[70%] gap-4 overflow-hidden">
 
                 <!-- Search Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">
                         <i data-lucide="search" class="w-3 h-3 inline-block mr-1 -mt-0.5"></i>
                         Product Search / Barcode Scanner
@@ -311,7 +329,7 @@
                 </div>
 
                 <!-- Payment method -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-4">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">
                         Payment Method
                     </label>
@@ -871,6 +889,23 @@
         const d = document.createElement('div');
         d.textContent = str;
         return d.innerHTML;
+    }
+    // ── THEME & FULLSCREEN ──────────────────────────────────
+    function toggleDarkMode() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('dark-mode', isDark);
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
     }
 </script>
 </body>

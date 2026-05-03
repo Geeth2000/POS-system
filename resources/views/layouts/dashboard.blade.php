@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { inter: ['Inter', 'sans-serif'] },
@@ -24,6 +25,11 @@
                     }
                 }
             }
+        }
+    </script>
+    <script>
+        if (localStorage.getItem('dark-mode') === 'true') {
+            document.documentElement.classList.add('dark');
         }
     </script>
     <style>
@@ -45,13 +51,13 @@
     </style>
     @yield('styles')
 </head>
-<body class="font-inter bg-gray-50 min-h-screen">
+<body class="font-inter bg-gray-50 dark:bg-slate-900 min-h-screen transition-colors duration-300">
 
 <div class="flex min-h-screen" id="app-wrapper">
 
     {{-- ── Sidebar ────────────────────────────────────────────────── --}}
     <aside id="sidebar"
-           class="fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-100 shadow-sm flex flex-col z-30 transition-transform duration-300">
+           class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-800 border-r border-gray-100 dark:border-slate-700 shadow-sm flex flex-col z-30 transition-transform duration-300">
 
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
@@ -174,7 +180,7 @@
         </nav>
 
         {{-- Bottom: Logout --}}
-        <div class="px-3 pb-4 border-t border-gray-100 pt-3">
+        <div class="px-3 pb-4 border-t border-gray-100 dark:border-slate-700 pt-3">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
@@ -193,21 +199,32 @@
     <div class="flex-1 ml-64 flex flex-col min-h-screen">
 
         {{-- Top Bar --}}
-        <header class="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <header class="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-8 py-4 flex items-center justify-between sticky top-0 z-10 transition-colors">
             <div>
-                <h1 class="text-lg font-semibold text-gray-900">@yield('page-title', 'Dashboard')</h1>
+                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">@yield('page-title', 'Dashboard')</h1>
                 <p class="text-xs text-gray-400 mt-0.5">@yield('page-subtitle', date('l, F j, Y'))</p>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
+                {{-- Theme & Fullscreen Toggles --}}
+                <div class="flex items-center bg-gray-100 dark:bg-slate-700 p-1 rounded-xl gap-1">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm" title="Toggle Dark Mode">
+                        <svg id="sun-icon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+                        <svg id="moon-icon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    </button>
+                    <button onclick="toggleFullScreen()" class="p-2 rounded-lg text-gray-500 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm" title="Full Screen">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    </button>
+                </div>
+
                 {{-- Role Badge --}}
                 <span class="px-3 py-1 text-xs font-semibold rounded-full
-                    {{ Auth::user()->isAdmin() ? 'bg-purple-100 text-purple-700' : (Auth::user()->isManager() ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700') }}">
+                    {{ Auth::user()->isAdmin() ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : (Auth::user()->isManager() ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300') }}">
                     {{ ucfirst(Auth::user()->role) }}
                 </span>
 
                 {{-- Avatar --}}
-                <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm"
                      style="background: linear-gradient(135deg, #4f46e5, #7c3aed)">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
@@ -244,5 +261,23 @@
 </div>
 
 @yield('scripts')
+<script>
+    function toggleDarkMode() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('dark-mode', isDark);
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+</script>
 </body>
 </html>
