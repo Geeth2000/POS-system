@@ -12,12 +12,14 @@ class CustomerController
      */
     public function index(Request $request)
     {
-        $query = Customer::withCount('transactions');
+        $query = Customer::withCount('sales');
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%");
+            });
         }
 
         if ($request->has('is_active')) {
@@ -25,6 +27,14 @@ class CustomerController
         }
 
         $customers = $query->paginate($request->per_page ?? 15);
+
+        // Return simpler data for POS search if needed
+        if ($request->has('search')) {
+            return response()->json([
+                'success' => true,
+                'data' => $customers->items(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -39,8 +49,8 @@ class CustomerController
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:customers',
-            'phone' => 'nullable|string|max:20',
+            'phone_number' => 'required|string|unique:customers,phone_number',
+            'email' => 'nullable|email|unique:customers,email',
             'address' => 'nullable|string',
         ]);
 
@@ -58,7 +68,7 @@ class CustomerController
      */
     public function show(Customer $customer)
     {
-        $customer->load('transactions.items');
+        $customer->load('sales.items');
 
         return response()->json([
             'success' => true,
@@ -73,8 +83,8 @@ class CustomerController
     {
         $request->validate([
             'name' => 'string|max:255',
-            'email' => 'email|unique:customers,email,' . $customer->id,
-            'phone' => 'nullable|string|max:20',
+            'phone_number' => 'string|unique:customers,phone_number,' . $customer->id,
+            'email' => 'nullable|email|unique:customers,email,' . $customer->id,
             'address' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
@@ -98,25 +108,6 @@ class CustomerController
         return response()->json([
             'success' => true,
             'message' => 'Customer deleted successfully',
-        ]);
-    }
-
-    /**
-     * Add loyalty points
-     */
-    public function addLoyaltyPoints(Request $request, Customer $customer)
-    {
-        $request->validate([
-            'points' => 'required|integer|min:1',
-        ]);
-
-        $customer->loyalty_points += $request->points;
-        $customer->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Loyalty points added successfully',
-            'data' => $customer,
         ]);
     }
 }

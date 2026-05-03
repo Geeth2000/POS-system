@@ -15,6 +15,7 @@ class CheckoutRequest extends FormRequest
     {
         return [
             'payment_method' => 'required|in:cash,card,check,transfer',
+            'customer_id' => 'nullable|exists:customers,id',
         ];
     }
 }

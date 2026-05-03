@@ -130,7 +130,7 @@
                     <span class="text-[9px] font-medium">Inventory</span>
                 </a>
 
-                <a href="#" id="navCustomers" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Customers">
+                <a href="{{ route('customers.index') }}" id="navCustomers" class="nav-item w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-200 hover:text-white cursor-pointer" title="Customers">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span class="text-[9px] font-medium">Customers</span>
                 </a>
@@ -266,6 +266,44 @@
             <!-- ============= RIGHT PANEL: Bill Summary ========= -->
             <aside class="w-[30%] flex flex-col gap-4 overflow-y-auto">
 
+                <!-- Customer Selection -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                            Customer
+                        </label>
+                        <button onclick="openRegisterModal()" class="text-[10px] text-indigo-600 hover:underline font-bold uppercase">
+                            + New Customer
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <i data-lucide="user" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input
+                            id="customerSearch"
+                            type="text"
+                            placeholder="Search by phone number..."
+                            class="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 transition-all"
+                            oninput="searchCustomers()"
+                        >
+                        <!-- Selected Customer Display -->
+                        <div id="selectedCustomer" class="hidden absolute inset-0 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center px-3 justify-between">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i data-lucide="user-check" class="w-4 h-4 text-indigo-600 flex-shrink-0"></i>
+                                <div class="min-w-0">
+                                    <div class="text-xs font-bold text-gray-800 truncate" id="selCustName"></div>
+                                    <div class="text-[10px] text-indigo-600 font-medium" id="selCustPoints"></div>
+                                </div>
+                            </div>
+                            <button onclick="clearSelectedCustomer()" class="text-gray-400 hover:text-red-500">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" id="selectedCustomerId" value="">
+                    </div>
+                    <!-- Search Results -->
+                    <div id="custSearchResults" class="hidden mt-2 bg-white border border-gray-100 rounded-xl shadow-lg absolute z-20 w-full left-0 max-h-48 overflow-y-auto"></div>
+                </div>
+
                 <!-- Payment method -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">
@@ -394,6 +432,29 @@
 
 
 
+<!-- Customer Registration Modal -->
+<div id="registerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-fade-in">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-widest">Register New Customer</h3>
+            <button onclick="closeRegisterModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form id="registerForm" class="p-6 space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Full Name</label>
+                <input type="text" id="regName" required placeholder="Enter customer name" class="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Phone Number</label>
+                <input type="text" id="regPhone" required placeholder="e.g. 0771234567" class="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500">
+            </div>
+            <button type="submit" id="regBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                Register Customer
+            </button>
+        </form>
+    </div>
+</div>
+
 <!-- ===================== JAVASCRIPT ======================== -->
 <script>
     // ── CONFIG ────────────────────────────────────────────────
@@ -456,6 +517,80 @@
     // ── MONEY FORMAT ─────────────────────────────────────────
     function money(v)   { return `Rs. ${Number(v||0).toFixed(2)}`; }
     function raw(v)     { return Number(v||0); }
+
+    // ── CUSTOMER LOGIC ───────────────────────────────────────
+    let customerTimer = null;
+
+    function openRegisterModal() { $('registerModal').classList.remove('hidden'); $('regName').focus(); }
+    function closeRegisterModal() { $('registerModal').classList.add('hidden'); }
+
+    async function searchCustomers() {
+        const query = $('customerSearch').value.trim();
+        if (query.length < 3) { $('custSearchResults').classList.add('hidden'); return; }
+
+        clearTimeout(customerTimer);
+        customerTimer = setTimeout(async () => {
+            try {
+                const res = await api(`/customers?search=${encodeURIComponent(query)}`);
+                const customers = res.data || [];
+                renderCustomerResults(customers);
+            } catch (err) { console.error(err); }
+        }, 300);
+    }
+
+    function renderCustomerResults(customers) {
+        const resultsEl = $('custSearchResults');
+        if (!customers.length) { resultsEl.classList.add('hidden'); return; }
+
+        resultsEl.innerHTML = customers.map(c => `
+            <div onclick="selectCustomer(${c.id}, '${escHtml(c.name)}', ${c.loyalty_points})" 
+                 class="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors">
+                <div class="text-xs font-bold text-gray-800">${escHtml(c.name)}</div>
+                <div class="text-[10px] text-gray-400">${c.phone_number} • ${c.loyalty_points} Points</div>
+            </div>
+        `).join('');
+        resultsEl.classList.remove('hidden');
+    }
+
+    function selectCustomer(id, name, points) {
+        $('selectedCustomerId').value = id;
+        $('selCustName').textContent = name;
+        $('selCustPoints').textContent = `${points} Loyalty Points`;
+        $('selectedCustomer').classList.remove('hidden');
+        $('custSearchResults').classList.add('hidden');
+        $('customerSearch').value = '';
+    }
+
+    function clearSelectedCustomer() {
+        $('selectedCustomerId').value = '';
+        $('selectedCustomer').classList.add('hidden');
+    }
+
+    $('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = $('regBtn');
+        btn.disabled = true;
+        btn.innerHTML = 'Registering...';
+
+        try {
+            const res = await api('/customers', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: $('regName').value,
+                    phone_number: $('regPhone').value
+                })
+            });
+            const c = res.data;
+            selectCustomer(c.id, c.name, c.loyalty_points);
+            closeRegisterModal();
+            $('registerForm').reset();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Register Customer';
+        }
+    });
 
     // ── PAYMENT SELECTION ────────────────────────────────────
     function selectPayment(method) {
@@ -666,13 +801,17 @@
         try {
             const result = await api('/billing/checkout', {
                 method: 'POST',
-                body: JSON.stringify({ payment_method: currentPayment }),
+                body: JSON.stringify({ 
+                    payment_method: currentPayment,
+                    customer_id: $('selectedCustomerId').value || null
+                }),
             });
             const saleId = result.data?.sale_id;
             const total  = result.data?.total_amount;
             updateCartStatus(`✓ Sale #${saleId} completed — ${money(total)}`, false);
             searchResults.innerHTML = '';
             statItems.textContent   = 0;
+            clearSelectedCustomer();
             await refreshCart();
         } catch (err) {
             updateCartStatus(err.message, true);

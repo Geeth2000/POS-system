@@ -50,4 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])
         ->name('reports.index')
         ->middleware('web.role:admin,manager');
+
+    // Customer Management (Admin + Manager only)
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->only(['index', 'store'])->middleware('web.role:admin,manager');
 });

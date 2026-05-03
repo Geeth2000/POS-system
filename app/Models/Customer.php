@@ -12,14 +12,16 @@ class Customer extends Model
     protected $fillable = [
         'name',
         'email',
-        'phone',
+        'phone_number',
         'address',
         'loyalty_points',
+        'total_spend',
         'is_active',
     ];
 
     protected $casts = [
         'loyalty_points' => 'integer',
+        'total_spend' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
@@ -32,10 +34,19 @@ class Customer extends Model
     }
 
     /**
-     * Calculate total spent by customer.
+     * Get the sales for the customer.
      */
-    public function getTotalSpentAttribute()
+    public function sales()
     {
-        return $this->transactions()->sum('total_amount');
+        return $this->hasMany(Sale::class);
+    }
+
+    /**
+     * Sri Lankan Standard Loyalty Point Calculation:
+     * 1 Point for every Rs. 100 spent.
+     */
+    public static function calculatePoints(float $amount): int
+    {
+        return (int) floor($amount / 100);
     }
 }

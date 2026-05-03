@@ -136,9 +136,20 @@ class BillingService
 
             $sale = $this->saleRepository->createSale([
                 'user_id' => $user->id,
+                'customer_id' => $payload['customer_id'] ?? null,
                 'total_amount' => round($totalAmount, 2),
                 'payment_method' => $payload['payment_method'],
             ]);
+
+            // Update Customer Loyalty Points and Total Spend
+            if ($sale->customer_id) {
+                $customer = \App\Models\Customer::find($sale->customer_id);
+                if ($customer) {
+                    $earnedPoints = \App\Models\Customer::calculatePoints($totalAmount);
+                    $customer->increment('loyalty_points', $earnedPoints);
+                    $customer->increment('total_spend', round($totalAmount, 2));
+                }
+            }
 
             foreach ($itemsByProduct as $item) {
                 $product = $products->get($item['product_id']);
