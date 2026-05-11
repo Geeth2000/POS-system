@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Sale;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class HomeController extends Controller
 {
@@ -23,12 +24,14 @@ class HomeController extends Controller
 
         // ── Admin / Manager View ──────────────────────────────────
         if ($user->isAdmin() || $user->isManager()) {
+            $today = Carbon::today('Asia/Colombo')->toDateString();
+            
             $stats = [
                 'total_users'     => User::where('id', '!=', $user->id)
                                          ->when($user->isManager(), fn($q) => $q->where('role', 'cashier'))
                                          ->count(),
-                'today_sales'     => Sale::whereDate('created_at', today())->count(),
-                'today_revenue'   => Sale::whereDate('created_at', today())->sum('total_amount'),
+                'today_sales'     => Sale::whereDate('created_at', $today)->count(),
+                'today_revenue'   => Sale::whereDate('created_at', $today)->sum('total_amount'),
                 'total_products'  => Product::count(),
                 'low_stock'       => Product::where('stock_qty', '<=', 10)->count(),
             ];
@@ -43,10 +46,12 @@ class HomeController extends Controller
         }
 
         // ── Cashier View ──────────────────────────────────────────
+        $today = Carbon::today('Asia/Colombo')->toDateString();
+        
         $stats = [
-            'my_sales_today'   => $user->sales()->whereDate('created_at', today())->count(),
-            'my_revenue_today' => $user->sales()->whereDate('created_at', today())->sum('total_amount'),
-            'avg_sale_value'   => $user->sales()->whereDate('created_at', today())->avg('total_amount') ?? 0,
+            'my_sales_today'   => $user->sales()->whereDate('created_at', $today)->count(),
+            'my_revenue_today' => $user->sales()->whereDate('created_at', $today)->sum('total_amount'),
+            'avg_sale_value'   => $user->sales()->whereDate('created_at', $today)->avg('total_amount') ?? 0,
         ];
 
         $recentSales = $user->sales()->latest()->take(10)->get();

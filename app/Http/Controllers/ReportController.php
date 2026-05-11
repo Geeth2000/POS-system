@@ -16,27 +16,28 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         // Default to last 30 days if no range provided
-        $startDate = $request->input('start_date', Carbon::now()->subDays(30)->toDateString());
-        $endDate = $request->input('end_date', Carbon::now()->toDateString());
+        $startDate = $request->input('start_date', Carbon::now('Asia/Colombo')->subDays(30)->toDateString());
+        $endDate = $request->input('end_date', Carbon::now('Asia/Colombo')->toDateString());
 
-        $start = Carbon::parse($startDate)->startOfDay();
-        $end = Carbon::parse($endDate)->endOfDay();
+        // Parse with timezone for correct start/end of day
+        $start = Carbon::parse($startDate, 'Asia/Colombo')->startOfDay()->timezone('UTC');
+        $end = Carbon::parse($endDate, 'Asia/Colombo')->endOfDay()->timezone('UTC');
 
-        // 1. Data Cards (Today's Stats)
-        $today = Carbon::today();
-        $dailySales = Transaction::whereDate('created_at', $today)->sum('total_amount');
-        $totalTransactions = Transaction::whereDate('created_at', $today)->count();
+        // 1. Data Cards (Today's Stats - relative to Asia/Colombo)
+        $today = Carbon::today('Asia/Colombo')->toDateString();
+        $dailySales = Sale::whereDate('created_at', $today)->sum('total_amount');
+        $totalTransactions = Sale::whereDate('created_at', $today)->count();
         $avgTransactionValue = $totalTransactions > 0 ? ($dailySales / $totalTransactions) : 0;
         $lowStockAlert = Product::where('stock_qty', '<', 10)->count();
 
         // 2. Visual Analytics (Charts)
         
         // Bar Chart: Daily sales trend for the last 7 days
-        $salesTrend = Transaction::select(
+        $salesTrend = Sale::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('SUM(total_amount) as total')
             )
-            ->where('created_at', '>=', Carbon::now()->subDays(6)->startOfDay())
+            ->where('created_at', '>=', Carbon::now('Asia/Colombo')->subDays(6)->startOfDay()->timezone('UTC'))
             ->groupBy('date')
             ->orderBy('date')
             ->get()
@@ -46,22 +47,28 @@ class ReportController extends Controller
         $trendLabels = [];
         $trendData = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i)->toDateString();
-            $trendLabels[] = Carbon::now()->subDays($i)->format('M d');
+            $date = Carbon::now('Asia/Colombo')->subDays($i)->toDateString();
+            $trendLabels[] = Carbon::now('Asia/Colombo')->subDays($i)->format('M d');
             $trendData[] = $salesTrend[$date] ?? 0;
         }
 
         // Pie Chart: Payment Method Breakdown for the filtered period
-        $paymentBreakdown = Transaction::whereBetween('created_at', [$start, $end])
+        $paymentBreakdown = Sale::whereBetween('created_at', [$start, $end])
             ->select('payment_method', DB::raw('count(*) as count'))
             ->groupBy('payment_method')
             ->get();
 
-        // 3. Transaction History Table
-        $history = Transaction::with('cashier')
+        // 3. Transaction History Table (Using Sale model)
+        $history = Sale::with('user')
             ->whereBetween('created_at', [$start, $end])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function($sale) {
+                // Map Sale fields to match what the Blade view expects for Transactions
+                $sale->transaction_number = 'INV-' . str_pad($sale->id, 6, '0', STR_PAD_LEFT);
+                $sale->cashier = $sale->user; 
+                return $sale;
+            });
 
         return view('reports', [
             'dailySales' => $dailySales,
