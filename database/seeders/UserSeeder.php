@@ -15,22 +15,22 @@ class UserSeeder extends Seeder
     {
         // Create Admin
         User::updateOrCreate(
-            ['email' => 'admin@gmail.com'],
+            ['email' => env('ADMIN_EMAIL', 'admin@gmail.com')],
             [
                 'name' => 'Admin User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
                 'role' => 'admin',
                 'is_active' => true,
             ]
         );
 
-        // Create Cashier
+        // Create Manager
         User::updateOrCreate(
-            ['email' => 'cashier01@gmail.com'],
+            ['email' => env('MANAGER_EMAIL', 'manager@gmail.com')],
             [
-                'name' => 'Cashier 01',
-                'password' => Hash::make('password'),
-                'role' => 'cashier',
+                'name' => 'Manager User',
+                'password' => Hash::make(env('MANAGER_PASSWORD', 'password')),
+                'role' => 'manager',
                 'is_active' => true,
             ]
         );
