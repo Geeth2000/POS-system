@@ -1,9 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ProductController;
+
+if (app()->environment('production')) {
+    URL::forceScheme('https');
+}
 
 // ─── Guest Routes ─────────────────────────────────────────────────────────────
 Auth::routes(['register' => false]); // Registration only via admin panel
