@@ -45,9 +45,6 @@
     "post-update-cmd": [
       "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
     ],
-    "post-install-cmd": [
-      "@php -r 'foreach (array(\"storage/framework/cache\",\"storage/framework/sessions\",\"storage/framework/views\") as $d) { if (!file_exists($d)) mkdir($d, 0755, true); }'"
-    ],
     "post-root-package-install": [
       "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
     ],
