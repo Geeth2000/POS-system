@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Transaction;
+use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -23,12 +23,13 @@ class ReportController extends Controller
         $start = Carbon::parse($startDate, 'Asia/Colombo')->startOfDay()->timezone('UTC');
         $end = Carbon::parse($endDate, 'Asia/Colombo')->endOfDay()->timezone('UTC');
 
-        // 1. Data Cards (Today's Stats - relative to Asia/Colombo)
-        $today = Carbon::today('Asia/Colombo')->toDateString();
-        $dailySales = Sale::whereDate('created_at', $today)->sum('total_amount');
-        $totalTransactions = Sale::whereDate('created_at', $today)->count();
+        // 1. Data Cards (Today's stats based on sales records)
+        $todayStart = Carbon::today('Asia/Colombo')->startOfDay()->timezone('UTC');
+        $todayEnd = Carbon::today('Asia/Colombo')->endOfDay()->timezone('UTC');
+        $dailySales = Sale::whereBetween('created_at', [$todayStart, $todayEnd])->sum('total_amount');
+        $totalTransactions = Sale::whereBetween('created_at', [$todayStart, $todayEnd])->count();
         $avgTransactionValue = $totalTransactions > 0 ? ($dailySales / $totalTransactions) : 0;
-        $lowStockAlert = Product::where('stock_qty', '<', 10)->count();
+        $lowStockAlert = Product::whereRaw('COALESCE(stock_qty, quantity, 0) < 10')->count();
 
         // 2. Visual Analytics (Charts)
         
