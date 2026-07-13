@@ -26,6 +26,8 @@ class HomeController extends Controller
         if ($user->isAdmin() || $user->isManager()) {
             $today = Carbon::today('Asia/Colombo')->toDateString();
             
+            $lowStockProducts = Product::whereRaw('stock_qty <= low_stock_threshold')->get();
+
             $stats = [
                 'total_users'     => User::where('id', '!=', $user->id)
                                          ->when($user->isManager(), fn($q) => $q->where('role', 'cashier'))
@@ -33,7 +35,7 @@ class HomeController extends Controller
                 'today_sales'     => Sale::whereDate('created_at', $today)->count(),
                 'today_revenue'   => Sale::whereDate('created_at', $today)->sum('total_amount'),
                 'total_products'  => Product::count(),
-                'low_stock'       => Product::where('stock_qty', '<=', 10)->count(),
+                'low_stock'       => $lowStockProducts->count(),
             ];
 
             $recentStaff = User::where('id', '!=', $user->id)
@@ -42,7 +44,7 @@ class HomeController extends Controller
                 ->take(5)
                 ->get();
 
-            return view('home', compact('stats', 'recentStaff'));
+            return view('home', compact('stats', 'recentStaff', 'lowStockProducts'));
         }
 
         // ── Cashier View ──────────────────────────────────────────

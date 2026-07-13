@@ -6,6 +6,26 @@
 
 @section('content')
 
+{{-- ── Low Stock Alert Banner ────────────────────────────────────────── --}}
+@if(isset($lowStockProducts) && $lowStockProducts->count() > 0)
+<div class="mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+        <div>
+            <h3 class="text-sm font-bold text-red-800">Low Stock Alert</h3>
+            <p class="text-xs text-red-600 mt-1">You have {{ $lowStockProducts->count() }} items that are at or below their minimum stock threshold.</p>
+        </div>
+    </div>
+    <button type="button" class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-red-700 transition-colors" onclick="document.getElementById('lowStockModal').classList.remove('hidden'); document.getElementById('lowStockModal').classList.add('flex')">
+        View List
+    </button>
+</div>
+@endif
+
 {{-- ── Stat Cards ─────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
 
@@ -143,5 +163,72 @@
     @endif
 
 </div>
+
+{{-- ── Low Stock Modal (Tailwind) ────────────────────────────────── --}}
+@if(isset($lowStockProducts) && $lowStockProducts->count() > 0)
+<div id="lowStockModal" class="hidden fixed inset-0 z-50 items-center justify-center">
+    {{-- Backdrop --}}
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('lowStockModal').classList.add('hidden'); document.getElementById('lowStockModal').classList.remove('flex')"></div>
+    
+    {{-- Modal Content --}}
+    <div class="relative w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden mx-4 max-h-[90vh] flex flex-col transform transition-all">
+        
+        {{-- Header --}}
+        <div class="bg-red-50 dark:bg-red-900/30 border-b border-red-100 dark:border-red-900/50 p-4 flex items-center justify-between">
+            <h5 class="font-bold text-red-800 dark:text-red-400 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Items with Low Stock
+            </h5>
+            <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" onclick="document.getElementById('lowStockModal').classList.add('hidden'); document.getElementById('lowStockModal').classList.remove('flex')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="overflow-y-auto p-0 flex-1">
+            <table class="w-full text-left border-collapse min-w-full">
+                <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700">
+                    <tr class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <th class="p-4 bg-gray-50 dark:bg-slate-900">Product Name</th>
+                        <th class="p-4 bg-gray-50 dark:bg-slate-900">SKU / Code</th>
+                        <th class="p-4 bg-gray-50 dark:bg-slate-900 text-center">Threshold</th>
+                        <th class="p-4 bg-gray-50 dark:bg-slate-900 text-center">Current Stock</th>
+                        <th class="p-4 bg-gray-50 dark:bg-slate-900 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
+                    @foreach($lowStockProducts as $product)
+                    <tr class="hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors">
+                        <td class="p-4 py-3">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $product->name }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $product->category->name ?? 'Uncategorized' }}</p>
+                        </td>
+                        <td class="p-4 py-3 text-sm text-gray-600 dark:text-gray-300 font-mono">{{ $product->sku ?? $product->item_code }}</td>
+                        <td class="p-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{{ $product->low_stock_threshold }}</td>
+                        <td class="p-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                                {{ $product->stock_qty }}
+                            </span>
+                        </td>
+                        <td class="p-4 py-3 text-right">
+                            <a href="{{ route('products.edit', $product->id) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 text-sm font-medium hover:underline">Restock</a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Footer --}}
+        <div class="border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 p-4 flex justify-end">
+            <button type="button" class="px-4 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors" onclick="document.getElementById('lowStockModal').classList.add('hidden'); document.getElementById('lowStockModal').classList.remove('flex')">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+@endif
 
 @endsection
