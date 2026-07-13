@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Middleware\RoleMiddleware;
 
 /*
@@ -71,6 +72,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/daily-sales-total', [ReportController::class, 'dailySalesTotal']);
         Route::get('/reports/top-selling-products', [ReportController::class, 'topSellingProducts']);
         Route::get('/reports/low-stock-items', [ReportController::class, 'lowStockItems']);
+
+        // Notifications
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::patch('/notifications/{id}/resolve', [NotificationController::class, 'markAsRead']);
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
     });
 
     // Cashier and Manager can create sales (admin also allowed)

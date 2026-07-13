@@ -174,6 +174,8 @@ class BillingService
 
             $this->cartRepository->clearCart($cart->id);
 
+            app(\App\Services\LowStockNotificationService::class)->checkProducts($productIds);
+
             return [
                 'sale_id' => $sale->id,
                 'user_id' => $sale->user_id,

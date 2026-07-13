@@ -105,6 +105,8 @@ class SalesService
                 $product->save();
             }
 
+            app(\App\Services\LowStockNotificationService::class)->checkProducts($productIds);
+
             return $transaction->load(['customer', 'cashier', 'items.product']);
         });
     }

@@ -88,6 +88,8 @@ class SaleService
                 }
             }
 
+            app(\App\Services\LowStockNotificationService::class)->checkProducts($productIds);
+
             return $sale->load(['user', 'items.product']);
         });
     }

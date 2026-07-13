@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\ProductObserver;
 
+#[ObservedBy([ProductObserver::class])]
 class Product extends Model
 {
     use HasFactory;
@@ -20,6 +23,7 @@ class Product extends Model
         'cost',
         'quantity',
         'stock_qty',
+        'low_stock_threshold',
         'is_active',
     ];
 
